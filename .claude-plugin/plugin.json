@@ -1,0 +1,10 @@
+{
+  "name": "chrome-focus-guard",
+  "version": "0.1.0",
+  "description": "Blocks scripts that steal focus from the automation Chrome, unless you approve one.",
+  "author": { "name": "Lucas Saldanha Werneck", "url": "https://github.com/lucas-saldanha-werneck" },
+  "homepage": "https://github.com/lucas-saldanha-werneck/chrome-focus-guard",
+  "repository": "https://github.com/lucas-saldanha-werneck/chrome-focus-guard",
+  "license": "MIT",
+  "keywords": ["hooks", "chrome", "cdp", "playwright", "focus", "guard"]
+}

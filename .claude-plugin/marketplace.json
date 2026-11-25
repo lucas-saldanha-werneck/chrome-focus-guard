@@ -1,0 +1,8 @@
+{
+  "name": "chrome-focus-guard",
+  "description": "Blocks scripts that bring the automation Chrome to the front.",
+  "owner": { "name": "Lucas Saldanha Werneck", "url": "https://github.com/lucas-saldanha-werneck" },
+  "plugins": [
+    { "name": "chrome-focus-guard", "source": "./", "description": "Blocks scripts that steal focus from the automation Chrome, unless you approve one." }
+  ]
+}

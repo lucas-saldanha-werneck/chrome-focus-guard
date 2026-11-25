@@ -1,0 +1,13 @@
+{
+  "description": "Denies Bash/Write/Edit that would bring the automation Chrome (CDP port) to the front.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs"], "timeout": 5 }
+        ]
+      }
+    ]
+  }
+}
