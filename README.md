@@ -69,8 +69,8 @@ The file must be newer than 10 minutes and have a note inside. The next blocked 
 
 The hook only sees what Claude runs. `bin/chrome-normal-scan` looks for the same patterns in the folders listed in
 `~/.config/chrome-focus-guard/roots.txt` (default `~/.local/share/*` and `~/.local/bin`; a trailing `/*` means each
-subfolder) and in the commands and scripts of loaded LaunchAgents, and prints `file:line: reason`. It uses a grep
-prefilter with a timeout and skips `node_modules`, venvs, `.git` and caches.
+subfolder) and in the commands and scripts of loaded LaunchAgents, and prints `file:line: reason`. It uses ripgrep (2 threads) or grep as a
+prefilter with a timeout (`CHROME_SCAN_TIMEOUT_MS`, default 240 s) and skips `node_modules`, venvs, `.git` and caches.
 
 ```sh
 chrome-normal-scan                    # print; exit 1 if something is outside the exceptions

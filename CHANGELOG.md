@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+- `bin/chrome-normal-scan` is now a bash shim for `lib/scan.mjs`: node refused the extensionless ES module when run from the plugin cache.
+- The scan uses ripgrep with 2 threads when present (grep timed out on a loaded machine), timeout 240 s.
+
 ## 0.3.0
 - Main Chrome rules moved to `lib/detect.mjs`, shared with the new `bin/chrome-normal-scan`.
 - Bash: read-only `osascript` on the main Chrome is denied while it is closed (it would launch and restore all tabs); `webbrowser.open` / `python -m webbrowser`; launching it with port 9222; `BU_CDP_URL=...:9222`; scripts the command runs are checked.
