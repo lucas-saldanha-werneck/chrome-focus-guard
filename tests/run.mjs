@@ -173,6 +173,35 @@ r('(w19) Edit adding open -a "Google Chrome" to a no-shebang-ext script -> block
 r('(w20) MultiEdit adding webbrowser.open -> blocked', 'MultiEdit', { file_path: path.join(tmp, 'j.py'), edits: [{ old_string: 'a', new_string: 'webbrowser.open(u)' }] }, true);
 W('(w21) Python channel="chrome" -> blocked', 'o.py', "browser = p.chromium.launch(channel=\"chrome\")", true);
 
+// (o) opencli drives the main Chrome through the Browser Bridge extension
+r('(o1) opencli reddit read -> blocked', 'Bash', { command: 'opencli reddit read abc -f json' }, true);
+r('(o2) opencli twitter search with timeout and path -> blocked', 'Bash', { command: 'timeout 60 ~/.local/bin/opencli twitter search "x" --limit 3 -f yaml' }, true);
+r('(o3) opencli browser open -> blocked', 'Bash', { command: 'cd /tmp && opencli browser open https://x.com' }, true);
+r('(o4) opencli --profile foo linkedin ... -> blocked', 'Bash', { command: 'opencli --profile foo linkedin search x' }, true);
+r('(o5) op-env opencli instagram ... -> blocked', 'Bash', { command: 'op-env -- opencli instagram user x' }, true);
+r('(o6) bash -c "opencli ..." -> blocked', 'Bash', { command: `bash -c "opencli bilibili hot"` }, true);
+r('(o7) inside $(...) -> blocked', 'Bash', { command: 'X=$(opencli xiaohongshu search a)' }, true);
+r('(o8) opencli --help / --version / -h -> allowed', 'Bash', { command: 'opencli --help; opencli --version; opencli -h' }, false);
+r('(o9) opencli doctor, profile list, list -> allowed', 'Bash', { command: 'opencli doctor && opencli profile list && opencli list' }, false);
+r('(o10) opencli reddit --help -> blocked (still the subcommand)', 'Bash', { command: 'opencli reddit --help' }, true);
+r('(o11) grep/cat/ls naming opencli -> allowed', 'Bash', { command: 'grep -rn opencli bin lib hooks; ls ~/.local/bin | grep opencli; which opencli' }, false);
+r('(o12) git commit message naming opencli reddit -> allowed', 'Bash', { command: 'git commit -m "stop using opencli reddit"' }, false);
+{ const res = run('Bash', { command: 'opencli reddit read abc' }); const ok = res.deny && /Browser Bridge/.test(res.out) && /9223/.test(res.out) && /Scrapling/.test(res.out); ok ? pass++ : fail++; console.log(`${ok ? 'PASS' : 'FAIL'}  (o13) denial explains the Beta 9223 alternatives`); }
+const oc1 = write('oc1.sh', '#!/bin/bash\nopencli reddit read "$1"\n');
+const oc2 = write('oc2.mjs', "execSync('opencli twitter thread ' + id)");
+const oc3 = write('oc3.py', "subprocess.run(['opencli', 'twitter', 'search', q])");
+const oc4 = write('oc4.sh', '#!/bin/bash\n# opencli reddit read is banned here\nopencli --version\n');
+r('(o14) running a script that calls opencli -> blocked', 'Bash', { command: `bash ${oc1}` }, true);
+r('(o15) script that only has opencli in a comment / --version -> allowed', 'Bash', { command: `bash ${oc4}` }, false);
+W('(o16) Write .sh with opencli reddit -> blocked', 'p1.sh', '#!/bin/bash\nopencli reddit read x', true);
+W('(o17) Write .mjs execSync opencli twitter -> blocked', 'p2.mjs', oc2 ? "execSync('opencli twitter thread ' + id)" : '', true);
+W('(o18) Write .py subprocess opencli -> blocked', 'p3.py', "subprocess.run(['opencli', 'twitter', 'search', q])", true);
+W('(o19) Write .md doc about opencli -> allowed', 'p4.md', 'opencli reddit read is banned', false);
+W('(o20) Write .py that only mentions opencli in a comment -> allowed', 'p5.py', "# opencli twitter search is banned\nprint(1)", false);
+const ocAllow = path.join(tmp, 'oc-allowed'); fs.mkdirSync(ocAllow);
+fs.writeFileSync(allowFile, `${allowDir}/\n${ocAllow}/\n`);
+r('(o21) script in the allow list that calls opencli -> allowed', 'Bash', { command: `bash ${write('oc-allowed/a.sh', '#!/bin/bash\nopencli reddit read x\n')}` }, false);
+
 // (e) approval file: one use, needs a note, expires
 const lib = path.join(state, 'libera-foco-1200');
 fs.writeFileSync(lib, ''); check('(e0) empty approval file -> still blocked', run('Bash', { command: `node ${bad}` }), true);

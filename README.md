@@ -30,6 +30,8 @@ and `open <url>` inside exec/subprocess, AppleScript/JXA on Google Chrome with `
 port 9222 (`--remote-debugging-port=9222`, `localhost:9222`), the main profile's `Google/Chrome/DevToolsActivePort`.
 Comments are ignored; docs (`.md` and other non-code files) are never checked.
 
+**opencli:** `opencli` drives the main Chrome through its Browser Bridge extension, without `open -a` or port 9222. Any subcommand is denied (Bash, scripts the command runs, Write/Edit of scripts) except `--help`/`--version` and the ones that never touch a browser (`list`, `doctor`, `profile`, `daemon`, `plugin`, `adapter`, `skills`, `completion`, `validate`, `external`). The same one-use approval and `allow.txt` apply. The scan below lists scripts that call it.
+
 Allowed: `open -g -a "Google Chrome Beta"`, Chrome Beta paths, opening files, apps or settings panes.
 
 **Exceptions:** `~/.config/chrome-focus-guard/allow.txt`, one path prefix per line (`~` ok, `#` comments).

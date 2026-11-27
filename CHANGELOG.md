@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+- `opencli` is denied: it drives the main Chrome through its Browser Bridge extension (no `open -a`, no port 9222), so nothing else caught it. Every subcommand is denied except `--help`, `--version`, `-h`, and the ones that never touch a browser (`list`, `doctor`, `profile`, `daemon`, `plugin`, `adapter`, `skills`, `completion`, `validate`, `external`, `help`). Applies to Bash (also through `timeout`, `op-env`, `bash -c`, `$(...)`), to scripts the command runs, and to Write/Edit of scripts. The denial points to Beta 9223, agent-browser `--cdp 9223`, Scrapling or web-unlock. Same one-use "Chrome normal" approval and `allow.txt` as before.
+- `bin/chrome-normal-scan` lists scripts that call `opencli` (shell functions and exec/subprocess calls included).
+
 ## 0.3.1
 - Any browser opened in the front is denied: `open -a/-na <browser>` without `-g` (seen 27/11 with a second Chrome Beta profile), or a browser binary run directly without `--headless`. Fix shown: `open -g -na ... --args`. Unlock with the `libera-foco-*` file.
 - `bin/chrome-normal-scan` is now a bash shim for `lib/scan.mjs`: node refused the extensionless ES module when run from the plugin cache.
