@@ -1,6 +1,6 @@
 {
   "name": "chrome-focus-guard",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Blocks Claude from opening the main Chrome or stealing focus from the automation Chrome, unless you approve it.",
   "author": { "name": "Lucas Saldanha Werneck", "url": "https://github.com/lucas-saldanha-werneck" },
   "homepage": "https://github.com/lucas-saldanha-werneck/chrome-focus-guard",
