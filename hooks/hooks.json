@@ -1,9 +1,9 @@
 {
-  "description": "Denies Bash/Write/Edit that would bring the automation Chrome (CDP port) to the front.",
+  "description": "Denies Bash/Write/Edit that would open or bring to the front the main Chrome, or bring the automation Chrome (CDP port) to the front.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Write|Edit",
+        "matcher": "Bash|Write|Edit|MultiEdit",
         "hooks": [
           { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs"], "timeout": 5 }
         ]
