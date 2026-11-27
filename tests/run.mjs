@@ -53,7 +53,7 @@ r('(f4) osascript tell Google Chrome to activate -> blocked', 'Bash', { command:
 r('(f5) bh activate_tab -> blocked', 'Bash', { command: "timeout 90 bh <<'PY'\nactivate_tab(current_tab())\nPY" }, true);
 r('(g1) open -g -a "Google Chrome Beta" <url> -> allowed', 'Bash', { command: 'open -g -a "Google Chrome Beta" "http://127.0.0.1:4387/x"' }, false);
 r('(g2) open a file / an app / a settings pane -> allowed', 'Bash', { command: 'open -a Finder ~/Downloads; open "x-apple.systempreferences:com.apple.Screen-Time"; open ~/x.pdf' }, false);
-r('(g3) open -a Safari <url> -> allowed', 'Bash', { command: 'open -a Safari https://example.com' }, false);
+r('(g3) open -g -a Safari <url> -> allowed', 'Bash', { command: 'open -g -a Safari https://example.com' }, false);
 r('(g4) read-only JXA on Google Chrome (no activate) -> allowed', 'Bash', { command: `osascript -e 'tell application "Google Chrome" to get URL of every tab of every window'` }, false);
 r('(g5) grep for the words -> allowed', 'Bash', { command: 'grep -rn "open -a \\"Google Chrome\\" https://x" ~/.claude' }, false);
 r('(g6) bh new_tab (background) -> allowed', 'Bash', { command: "bh <<'PY'\nnew_tab('https://x.com')\nPY" }, false);
@@ -104,6 +104,21 @@ r('(t7) Edit the used-answers file -> blocked', 'Edit', { file_path: '/Users/x/.
 r('(t8) reading a transcript (grep/tail/jq) -> allowed', 'Bash', { command: `grep -c answers ${T}; tail -5 ${T} | jq .type > /tmp/out.txt` }, false);
 r('(t9) Beta approval file libera-foco -> allowed', 'Bash', { command: 'echo "Lucas autorizou: x" > ~/.claude/state/libera-foco-1200' }, false);
 
+// (b) any browser in the front (focus), Beta and extra profiles included
+const JBEI = `open -na "Google Chrome Beta" --args --user-data-dir="$HOME/.chrome-jbei-meta" --remote-debugging-port=9231 --no-first-run "https://www.facebook.com/login"`;
+r('(b1) real case 27/11: open -na "Google Chrome Beta" --args ... (no -g) -> blocked', 'Bash', { command: JBEI }, true);
+r('(b2) same with open -g -na -> allowed', 'Bash', { command: JBEI.replace('open -na', 'open -g -na') }, false);
+r('(b3) open -gja (hidden) -> allowed', 'Bash', { command: 'open -gja "Google Chrome Beta" https://x' }, false);
+r('(b4) open -a Safari <url> (no -g) -> blocked', 'Bash', { command: 'open -a Safari https://example.com' }, true);
+r('(b5) open -a "Google Chrome Beta" with --args -g later (still no -g flag) -> blocked', 'Bash', { command: 'open -a "Google Chrome Beta" --args -g' }, true);
+r('(b6) Beta binary run directly -> blocked', 'Bash', { command: '"/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta" --user-data-dir=/tmp/p --remote-debugging-port=9231 &' }, true);
+r('(b7) Beta binary --headless -> allowed', 'Bash', { command: '"/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta" --headless=new --remote-debugging-port=9231 &' }, false);
+r('(b8) ps/pgrep naming the binary -> allowed', 'Bash', { command: 'pgrep -f "Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta"; ps aux | grep "Contents/MacOS/Google Chrome Beta"' }, false);
+r('(b9) open -a Finder / TextEdit -> allowed', 'Bash', { command: 'open -a TextEdit ~/x.txt' }, false);
+fs.writeFileSync(path.join(state, 'libera-foco-1300'), 'Lucas autorizou: abre o Beta na frente');
+r('(b10) with libera-foco approval -> allowed once', 'Bash', { command: JBEI }, false);
+r('(b11) then blocked again', 'Bash', { command: JBEI }, true);
+
 // (h) Bash: osascript on the main Chrome without activate launches it when closed; webbrowser; port 9222
 env.CHROME_FOCUS_CHROME_RUNNING = '0';
 r('(h1) read-only osascript, main Chrome CLOSED -> blocked', 'Bash', { command: `osascript -e 'tell application "Google Chrome" to get URL of every tab of every window'` }, true);
@@ -151,6 +166,8 @@ W('(w23) log line "open " + url (not run) -> allowed', 'q.js', "log('open ' + ur
 W('(w24) execSync("open " + url) -> blocked', 'r.js', "execSync('open ' + url)", true);
 W('(w25) reads the main Chrome DevToolsActivePort -> blocked', 's.mjs', "readFileSync(HOME + '/Library/Application Support/Google/Chrome/DevToolsActivePort')", true);
 W('(w26) Chrome Beta DevToolsActivePort -> allowed', 't.mjs', "readFileSync(HOME + '/Library/Application Support/Google/Chrome Beta/DevToolsActivePort')", false);
+W('(w27) .sh that opens the Beta in the front -> blocked', 'u.sh', '#!/bin/bash\nopen -na "Google Chrome Beta" --args --user-data-dir=/tmp/p', true);
+W('(w28) .sh with open -g -na Beta -> allowed', 'v.sh', '#!/bin/bash\nopen -g -na "Google Chrome Beta" --args --user-data-dir=/tmp/p', false);
 const ed = write('edit-me.sh', '#!/bin/zsh\necho hi\n');
 r('(w19) Edit adding open -a "Google Chrome" to a no-shebang-ext script -> blocked', 'Edit', { file_path: ed, old_string: 'echo hi', new_string: 'open -a "Google Chrome" https://x' }, true);
 r('(w20) MultiEdit adding webbrowser.open -> blocked', 'MultiEdit', { file_path: path.join(tmp, 'j.py'), edits: [{ old_string: 'a', new_string: 'webbrowser.open(u)' }] }, true);

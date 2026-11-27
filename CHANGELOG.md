@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.3.1
+- Any browser opened in the front is denied: `open -a/-na <browser>` without `-g` (seen 27/11 with a second Chrome Beta profile), or a browser binary run directly without `--headless`. Fix shown: `open -g -na ... --args`. Unlock with the `libera-foco-*` file.
 - `bin/chrome-normal-scan` is now a bash shim for `lib/scan.mjs`: node refused the extensionless ES module when run from the plugin cache.
 - The scan uses ripgrep with 2 threads when present (grep timed out on a loaded machine), timeout 240 s.
 

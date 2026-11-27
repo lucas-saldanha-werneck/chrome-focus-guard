@@ -65,6 +65,14 @@ echo "You approved: <what you said>" > ~/.claude/state/libera-foco-$(date +%H%M)
 The file must be newer than 10 minutes and have a note inside. The next blocked Bash call uses it and deletes it.
 (Write/Edit of the script keeps the file; the run consumes it.) It does not unlock the main Chrome.
 
+## Any browser in the front (focus)
+
+`open -a`/`-na` of a browser (Chrome Beta, Chromium, Safari, Firefox, Brave, Edge, Arc...) without `-g` brings its window
+to the front, and so does running a browser binary (`.../Contents/MacOS/Google Chrome Beta`) directly without
+`--headless`. Both are denied with the fix: `open -g -na "Google Chrome Beta" --args <flags>` (`-j` also hides it).
+Extra Beta profiles are fine; only the focus matters. In `.sh` scripts the scanner flags the same lines.
+The `libera-foco-*` file unlocks one run.
+
 ## Scripts outside Claude: `bin/chrome-normal-scan`
 
 The hook only sees what Claude runs. `bin/chrome-normal-scan` looks for the same patterns in the folders listed in

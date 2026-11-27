@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { bashNormalChrome, codeNormalChrome, isCodeFile, loadAllow, isAllowed, chromeRunning } from '../lib/detect.mjs';
+import { bashBrowserFront, bashNormalChrome, codeNormalChrome, isCodeFile, loadAllow, isAllowed, chromeRunning } from '../lib/detect.mjs';
 
 const PORT = process.env.CHROME_FOCUS_PORT || '9223';
 const TTL_MS = Number(process.env.CHROME_FOCUS_TTL_MS || 10 * 60 * 1000);
@@ -140,7 +140,9 @@ const ASK = `Faça nesta ordem:
 Robô (claude -p) não tem como liberar: não há quem responda.`;
 
 function deny(found, where, normal, note = '') {
-  const reason = normal ?
+  const reason = normal === 'front' ?
+`Bloqueado (chrome-focus-guard): ${found}. Perfis extras do Beta podem; o problema é só o foco do Lucas.
+Se precisar mesmo na frente: pergunte ao Lucas com AskUserQuestion. Só com o "sim" dele no chat: mkdir -p ${STATE} && echo "Lucas autorizou: <o que ele disse>" > ${path.join(STATE, PREFIX)}$(date +%H%M) (1 uso, 10 min).` : normal ?
 `Bloqueado (chrome-focus-guard): ${found}. Regra do Lucas: robô e agente não abrem nem trazem para a frente o Chrome normal.${note ? `\nLiberação recusada: ${note}.` : ''}
 ${ASK}` :
 `Bloqueado (chrome-focus-guard): ${where} fala com o Chrome de automação (porta ${PORT}) e usa ${found}, o que traz o Chrome para a frente e rouba o foco do Lucas.
@@ -197,6 +199,12 @@ process.stdin.on('end', () => {
       for (const p of executedScripts(cmd, cwd)) { normal = scriptNormalChrome(p, allow); if (normal) break; }
     }
     if (normal) return gateNormal(normal, ev, true);
+    const front = bashBrowserFront(cmd);
+    if (front) {
+      const tk = token();
+      if (tk) { try { fs.unlinkSync(tk); } catch (_) {} return; }
+      return deny(front, '', 'front');
+    }
     if (!RUNNER.test(cmd)) return; // fast exit: nothing is being run by an interpreter
     found = findSteal(cmd); where = 'o comando';
     if (!found) {
