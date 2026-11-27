@@ -12,6 +12,14 @@ It reads the script file named in the command, not only the command text. Commen
 Scripts under a `web-unlock/` folder (`cdp.mjs`, `chrome-real.sh`) and this repo are never blocked.
 It only sees commands Claude runs; scheduled jobs are not affected.
 
+## The main Chrome
+
+Bash commands that open the main Chrome (not Beta) or bring it to the front are denied too:
+`open -a "Google Chrome"` (with or without `-g`), `open <url>` with no app (it goes to the default browser,
+here the main Chrome), `tell application "Google Chrome" ... activate`, `Application('Google Chrome').activate()`
+and browser-harness `activate_tab(` / `activate=True`. Read-only JXA (list tabs, read a URL), `open -g -a "Google Chrome Beta"`
+and opening files, apps or settings panes are allowed. The same approval file unlocks one run.
+
 ## Approving one run
 
 If there is really no other way, Claude asks you. Only after your yes does it create a one-use file:

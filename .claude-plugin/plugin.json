@@ -1,6 +1,6 @@
 {
   "name": "chrome-focus-guard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Blocks scripts that steal focus from the automation Chrome, unless you approve one.",
   "author": { "name": "Lucas Saldanha Werneck", "url": "https://github.com/lucas-saldanha-werneck" },
   "homepage": "https://github.com/lucas-saldanha-werneck/chrome-focus-guard",

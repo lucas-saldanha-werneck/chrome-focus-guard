@@ -43,6 +43,22 @@ r('(d2) npm test -> allowed', 'Bash', { command: 'npm test' }, false);
 r('(d3) newPage without any CDP/9223 -> allowed', 'Bash', { command: `node ${noport}` }, false);
 r('(d4) grep for the words, no interpreter -> allowed', 'Bash', { command: 'grep -rn "bringToFront|9223" ~/.claude' }, false);
 
+// (f) main Chrome (not Beta): opening it, a URL in the default browser, bringing it to the front
+r('(f1) open -a "Google Chrome" <url> -> blocked', 'Bash', { command: 'open -a "Google Chrome" "http://copilot.local/setup"; sleep 2' }, true);
+r('(f2) open -g -a "Google Chrome" <url> -> blocked', 'Bash', { command: 'cd /tmp && open -g -a "Google Chrome" "http://x"' }, true);
+r('(f3) open "$URL" (default browser) -> blocked', 'Bash', { command: 'U=https://example.com; [ -n "$U" ] && open "https://example.com/login"' }, true);
+r('(f4) osascript tell Google Chrome to activate -> blocked', 'Bash', { command: `osascript -e 'tell application "Google Chrome" to activate'` }, true);
+r('(f5) bh activate_tab -> blocked', 'Bash', { command: "timeout 90 bh <<'PY'\nactivate_tab(current_tab())\nPY" }, true);
+r('(g1) open -g -a "Google Chrome Beta" <url> -> allowed', 'Bash', { command: 'open -g -a "Google Chrome Beta" "http://127.0.0.1:4387/x"' }, false);
+r('(g2) open a file / an app / a settings pane -> allowed', 'Bash', { command: 'open -a Finder ~/Downloads; open "x-apple.systempreferences:com.apple.Screen-Time"; open ~/x.pdf' }, false);
+r('(g3) open -a Safari <url> -> allowed', 'Bash', { command: 'open -a Safari https://example.com' }, false);
+r('(g4) read-only JXA on Google Chrome (no activate) -> allowed', 'Bash', { command: `osascript -e 'tell application "Google Chrome" to get URL of every tab of every window'` }, false);
+r('(g5) grep for the words -> allowed', 'Bash', { command: 'grep -rn "open -a \\"Google Chrome\\" https://x" ~/.claude' }, false);
+r('(g6) bh new_tab (background) -> allowed', 'Bash', { command: "bh <<'PY'\nnew_tab('https://x.com')\nPY" }, false);
+fs.writeFileSync(path.join(state, 'libera-foco-0900'), 'Lucas autorizou: abre no Chrome normal');
+r('(f6) open -a "Google Chrome" with approval file -> allowed once', 'Bash', { command: 'open -a "Google Chrome" https://x' }, false);
+r('(f7) and blocked again', 'Bash', { command: 'open -a "Google Chrome" https://x' }, true);
+
 // (e) approval file: one use, needs a note, expires
 const lib = path.join(state, 'libera-foco-1200');
 fs.writeFileSync(lib, ''); check('(e0) empty approval file -> still blocked', run('Bash', { command: `node ${bad}` }), true);

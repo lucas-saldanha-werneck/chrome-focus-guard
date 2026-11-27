@@ -44,6 +44,25 @@ function findSteal(text) {
   return m ? m[0].replace(/\s*\($/, '(') : null;
 }
 
+// The main Chrome (not Beta): Bash commands that open it, bring it to the front, or open a URL in the
+// default browser (on this Mac the default browser is the main Chrome). Seen 27/11/2026: `open -a
+// "Google Chrome" <url>`, `open "$URL"` and browser-harness `activate_tab(...)` stole the focus.
+const LEAD = /^\s*(?:(?:then|do|else|nohup|exec|time|command)\s+)*/;
+function findNormalChrome(cmd) {
+  const t = stripComments(cmd);
+  for (const seg of t.split(/[;&|\n]+/)) {
+    const s = seg.replace(LEAD, '');
+    if (!/^(?:\/usr\/bin\/)?open\s/.test(s)) continue;
+    if (/Chrome Beta/.test(s)) continue;
+    if (/(?:^|\s)-a\s*["']?(?:\/Applications\/)?Google Chrome(?:\.app)?["']?(?=\s|$)/.test(s)) return 'open -a "Google Chrome" (o Chrome normal)';
+    if (!/(?:^|\s)-[a-zA-Z]*[ab]\b/.test(s) && /["']?https?:\/\//.test(s)) return 'open <url> (abre no navegador padrão, que é o Chrome normal)';
+  }
+  if (/tell application \\?["']Google Chrome\\?["']/.test(t) && /\bactivate\b/.test(t)) return 'tell application "Google Chrome" ... activate';
+  if (/Application\(\s*\\?["']Google Chrome\\?["']\s*\)\.activate\(/.test(t)) return "Application('Google Chrome').activate()";
+  if (/(?:^|[\s;&|(])bh\b/.test(t) && /\bactivate_tab\s*\(|\bactivate\s*=\s*True/.test(t)) return 'bh activate_tab (traz o Chrome normal para a frente)';
+  return null;
+}
+
 function token() {
   let files = [];
   try { files = fs.readdirSync(STATE).filter(f => f.startsWith(PREFIX)); } catch (_) {}
@@ -59,8 +78,11 @@ function token() {
   return null;
 }
 
-function deny(found, where) {
-  const reason =
+function deny(found, where, normal) {
+  const reason = normal ?
+`Bloqueado (chrome-focus-guard): o comando usa ${found}. Regra do Lucas (24/11): robô e agente não abrem nem trazem para a frente o Chrome normal.
+Jeito certo: Chrome Beta de automação em segundo plano: web-unlock bin/chrome-real.sh start "<url>" (aba de fundo, porta ${PORT}) ou open -g -a "Google Chrome Beta" "<url>".
+Se precisar mesmo do Chrome normal: pergunte ao Lucas com AskUserQuestion. Só com o "sim" dele no chat, crie o arquivo de liberação (vale 10 min, 1 uso): mkdir -p ${STATE} && echo "Lucas autorizou: <o que ele disse>" > ${path.join(STATE, PREFIX)}$(date +%H%M)` :
 `Bloqueado (chrome-focus-guard): ${where} fala com o Chrome de automação (porta ${PORT}) e usa ${found}, o que traz o Chrome para a frente e rouba o foco do Lucas.
 Jeito certo: aba em segundo plano com Target.createTarget {background:true}, texto por JS no evaluate, tecla por Input.dispatchKeyEvent na sessão da aba (ctx.newCDPSession(page)). Exemplo que funciona: ~/.local/share/linkedin-msg/li-bg-exemplo.mjs. Para ler página: web-unlock bin/cdp.mjs.
 Se não tiver jeito: pergunte ao Lucas com AskUserQuestion. Só com o "sim" dele no chat, crie o arquivo de liberação (vale 10 min, 1 uso): mkdir -p ${STATE} && echo "Lucas autorizou: <o que ele disse>" > ${path.join(STATE, PREFIX)}$(date +%H%M)`;
@@ -75,6 +97,12 @@ process.stdin.on('end', () => {
   let found = null, where = '';
   if (tool === 'Bash') {
     const cmd = String(inp.command || '');
+    const normal = findNormalChrome(cmd);
+    if (normal) {
+      const tk = token();
+      if (tk) { try { fs.unlinkSync(tk); } catch (_) {} return; }
+      return deny(normal, 'o comando', true);
+    }
     if (!RUNNER.test(cmd)) return; // fast exit: nothing is being run by an interpreter
     found = findSteal(cmd); where = 'o comando';
     if (!found) {
